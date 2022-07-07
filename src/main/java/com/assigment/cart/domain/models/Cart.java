@@ -15,14 +15,16 @@ public class Cart {
     private String userUUID;
     private Map<String, Integer> booksUUID;
     private Float price;
+    private CartStatus status;
 
     @Indexed(unique = true)
     private String cartUUID;
 
-    public Cart(String userUUID, Map<String, Integer> booksUUID, String cartUUID, Float price) {
+    public Cart(String userUUID, Map<String, Integer> booksUUID, String cartUUID, Float price, CartStatus status) {
         this.userUUID = userUUID;
         this.booksUUID = booksUUID;
         this.cartUUID = cartUUID;
         this.price = price;
+        this.status = status;
     }
 }

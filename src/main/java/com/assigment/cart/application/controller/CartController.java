@@ -1,6 +1,7 @@
 package com.assigment.cart.application.controller;
 
 import com.assigment.cart.application.request.AddToCartDTO;
+import com.assigment.cart.application.request.CartUUIDDTO;
 import com.assigment.cart.domain.service.CartService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,9 +27,19 @@ public class CartController {
         return cartService.getByUserUUID(user);
     }
 
+    @GetMapping("/{cartUUID}")
+    public ResponseEntity<?> getCart(@PathVariable String cartUUID){
+        return cartService.getCart(cartUUID);
+    }
+
     @PostMapping("/add")
     public ResponseEntity<?> getCartByUser(@RequestHeader("X-auth-user-id") String userUUID, @RequestBody AddToCartDTO books){
         return cartService.addToCart(books, userUUID);
+    }
+
+    @PostMapping("/close")
+    public ResponseEntity<?> closeCart(@RequestHeader("X-auth-user-id") String userUUID, @RequestBody CartUUIDDTO cart){
+        return cartService.closeCart(cart, userUUID);
     }
 
     @DeleteMapping("/remove/{bookUUID}")

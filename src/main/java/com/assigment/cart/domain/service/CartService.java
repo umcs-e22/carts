@@ -1,9 +1,11 @@
 package com.assigment.cart.domain.service;
 
 import com.assigment.cart.application.request.AddToCartDTO;
+import com.assigment.cart.application.request.CartUUIDDTO;
 import com.assigment.cart.application.response.Book;
 import com.assigment.cart.application.response.BookDTO;
 import com.assigment.cart.application.response.CartDTO;
+import com.assigment.cart.domain.models.CartStatus;
 import com.assigment.cart.domain.repository.CartRepository;
 import com.assigment.cart.domain.models.Cart;
 import lombok.AllArgsConstructor;
@@ -24,8 +26,8 @@ public class CartService {
     protected final CartRepository cartRepository;
 
     public ResponseEntity<?> getByUserUUID(String uuid) {
-        log.info("Getting book:<"+uuid+">");
-        Optional<Cart> cart = cartRepository.findByUserUUID(uuid);
+        log.info("Getting cart:<"+uuid+">");
+        Optional<Cart> cart = cartRepository.findByUserUUIDAndStatus(uuid, CartStatus.OPEN);
         if(cart.isPresent()){
             CartDTO response = new CartDTO(cart.get());
             RestTemplate restTemplate = new RestTemplate();
@@ -44,8 +46,18 @@ public class CartService {
         }
     }
 
+    public ResponseEntity<?> getCart(String uuid) {
+        log.info("Getting cary:<"+uuid+">");
+        Optional<Cart> cart = cartRepository.findByCartUUID(uuid);
+        if(cart.isPresent()){
+            return new ResponseEntity<>(cart, HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+    }
+
     public ResponseEntity<?> addToCart(AddToCartDTO books, String userUUID) {
-        Optional<Cart> cart = cartRepository.findByUserUUID(userUUID);
+        Optional<Cart> cart = cartRepository.findByUserUUIDAndStatus(userUUID, CartStatus.OPEN);
         RestTemplate restTemplate = new RestTemplate();
         String bookResourceUrl = "http://localhost:8989/v1/books/";
         if(cart.isPresent()){
@@ -77,7 +89,7 @@ public class CartService {
     }
 
     public ResponseEntity<?> removeFromCart(String book, String userUUID) {
-        Optional<Cart> cart = cartRepository.findByUserUUID(userUUID);
+        Optional<Cart> cart = cartRepository.findByUserUUIDAndStatus(userUUID, CartStatus.OPEN);
         RestTemplate restTemplate = new RestTemplate();
         String bookResourceUrl = "http://localhost:8989/v1/books/";
         Book b = restTemplate.getForObject(bookResourceUrl + book, Book.class);
@@ -101,7 +113,7 @@ public class CartService {
     }
 
     public ResponseEntity<?> removeOne(String uuid){
-        cartRepository.findByUserUUID(uuid)
+        cartRepository.findByUserUUIDAndStatus(uuid, CartStatus.OPEN)
                 .ifPresentOrElse(p-> {
                     log.info("Deleted: "+ uuid + " from cart repository");
                     cartRepository.delete(p)
@@ -110,8 +122,19 @@ public class CartService {
         return ResponseEntity.ok("");
     }
 
+    public ResponseEntity<?> closeCart(CartUUIDDTO cartUUID, String userUUID){
+        Optional<Cart> cart = cartRepository.findByCartUUID(cartUUID.getCartUUID());
+
+        if(cart.isPresent() && cart.get().getUserUUID().equals(userUUID)){
+            cart.get().setStatus(CartStatus.CLOSE);
+            cartRepository.save(cart.get());
+            return ResponseEntity.ok(Collections.emptyMap());
+        }
+        return new ResponseEntity(HttpStatus.FORBIDDEN);
+    }
+
     private Cart createCart(String userUUID) {
-        Cart cart = new Cart(userUUID, Collections.emptyMap(), UUID.randomUUID().toString(), 0.f);
+        Cart cart = new Cart(userUUID, Collections.emptyMap(), UUID.randomUUID().toString(), 0.f, CartStatus.OPEN);
         return cartRepository.save(cart);
     }
 }
