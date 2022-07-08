@@ -13,4 +13,8 @@
     ````
     docker-compose up -d 
     ````
-
+2. Admin account
+    ````
+    username: admin
+    password: admin
+    ````
