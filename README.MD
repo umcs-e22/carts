@@ -14,12 +14,3 @@
     docker-compose up -d 
     ````
 
-2. Run SureTime application
-    ```
-    mvn spring-boot:run
-    ```
-3. To turn on security in application.properties set this variable to true. 
-    ```
-    suretime.app.isSecureMode = true
-   ```
-
